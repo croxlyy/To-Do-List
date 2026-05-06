@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Akıllı To-Do List | 3D Arayüz</title>
+    <style>
+        body {
+            background-color: #09090b;
+            background-image: radial-gradient(circle at 50% 0%, #1a1a24 0%, #09090b 70%);
+            color: #e0e0e0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            position: relative;
+        }
+        h1 { 
+            color: #ffffff; 
+            text-shadow: 0 5px 15px rgba(187, 134, 252, 0.4); 
+            letter-spacing: 2px;
+            font-size: 2.5em;
+            margin-bottom: 30px;
+        }
+        
+        .form-container {
+            background: rgba(20, 20, 24, 0.7);
+            backdrop-filter: blur(10px);
+            padding: 25px;
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.1);
+            margin-bottom: 40px;
+            width: 100%;
+            max-width: 600px;
+        }
+        input, button {
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 8px;
+            box-sizing: border-box;
+            background-color: #121215;
+            color: #fff;
+            box-shadow: inset 2px 2px 5px rgba(0,0,0,0.8), inset -1px -1px 2px rgba(255,255,255,0.03);
+            outline: none;
+            font-size: 1em;
+            transition: 0.3s;
+        }
+        input:focus {
+            box-shadow: inset 2px 2px 5px rgba(0,0,0,0.8), 0 0 10px rgba(187, 134, 252, 0.3);
+            border: 1px solid #bb86fc;
+        }
+        button { 
+            background: linear-gradient(145deg, #322844, #1d1829);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.1);
+            color: #bb86fc; 
+            cursor: pointer; 
+            font-size: 1.2em;
+            font-weight: bold; 
+            letter-spacing: 1px;
+            margin-top: 20px;
+        }
+        button:active {
+            transform: translateY(2px);
+            box-shadow: inset 3px 3px 10px rgba(0,0,0,0.8);
+        }
+
+        .radar-panel {
+            background: rgba(15, 15, 20, 0.85);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(187, 134, 252, 0.2);
+            border-radius: 12px;
+            padding: 15px;
+            width: 300px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8), inset 0 0 15px rgba(187, 134, 252, 0.05);
+        }
+        @media (min-width: 1050px) {
+            .radar-panel { position: fixed; top: 30px; right: 30px; }
+        }
+        @media (max-width: 1049px) {
+            .radar-panel { margin-bottom: 30px; width: 100%; max-width: 600px; }
+        }
+        .radar-header {
+            color: #bb86fc;
+            font-size: 1.1em;
+            font-weight: bold;
+            letter-spacing: 2px;
+            border-bottom: 1px solid rgba(187, 134, 252, 0.2);
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-shadow: 0 0 8px rgba(187, 134, 252, 0.5);
+        }
+        .radar-item {
+            background: rgba(0, 0, 0, 0.4);
+            border-left: 3px solid #ffca28;
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            font-size: 0.9em;
+        }
+        .radar-item.critical-alert {
+            border-left-color: #ff5252;
+            animation: pulse-border 2s infinite;
+        }
+        .radar-title { color: #ddd; font-weight: bold; margin-bottom: 5px; }
+        .radar-info { display: flex; justify-content: space-between; color: #888; font-size: 0.85em;}
+        
+        @keyframes pulse-border {
+            0% { box-shadow: inset 2px 0 5px rgba(255, 82, 82, 0) }
+            50% { box-shadow: inset 5px 0 15px rgba(255, 82, 82, 0.4) }
+            100% { box-shadow: inset 2px 0 5px rgba(255, 82, 82, 0) }
+        }
+
+        .section-title {
+            width: 100%;
+            max-width: 600px;
+            border-bottom: 2px solid rgba(255,255,255,0.05);
+            padding-bottom: 10px;
+            margin-top: 20px;
+            margin-bottom: 20px;
+            color: #888;
+            font-size: 1.1em;
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .section-title.critical { color: #ff5252; border-bottom-color: rgba(255, 82, 82, 0.3); }
+
+        .task-list { width: 100%; max-width: 600px; }
+        
+        .task-card {
+            background: linear-gradient(145deg, #1c1c22, #141418);
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.05);
+            border-left: 5px solid #bb86fc;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+        .task-card:hover { 
+            transform: translateY(-5px) scale(1.02); 
+            box-shadow: 0 15px 30px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.1);
+        }
+        
+        .task-card.high-priority {
+            border-left-color: #ff5252;
+            box-shadow: 0 10px 20px rgba(255, 82, 82, 0.1), inset 0 1px 0 rgba(255, 82, 82, 0.2);
+        }
+        
+        /* ZAMANI GEÇEN GÖREVLER İÇİN ÖZEL STİL */
+        .task-card.overdue {
+            border-left-color: #ff5252;
+            opacity: 0.6;
+            filter: grayscale(80%);
+            background: #141418;
+        }
+        .task-card.completed { 
+            border-left-color: #333; 
+            opacity: 0.4; 
+            filter: grayscale(100%);
+        }
+        
+        .ankh-watermark {
+            position: absolute;
+            right: -10px;
+            bottom: -30px;
+            font-size: 120px;
+            color: rgba(255, 82, 82, 0.03);
+            z-index: 0;
+            pointer-events: none;
+            transform: rotate(-15deg);
+        }
+        
+        .task-content { position: relative; z-index: 1; }
+        .task-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;}
+        .task-header h3 { margin: 0; font-size: 1.3em; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
+        
+        .category-badge {
+            background: rgba(0,0,0,0.5);
+            color: #bb86fc;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: bold;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.1);
+            border: 1px solid rgba(187, 134, 252, 0.3);
+        }
+        .high-priority .category-badge { color: #ff5252; border-color: rgba(255, 82, 82, 0.3); }
+
+        .action-links { margin-top: 20px; display: flex; gap: 20px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 15px;}
+        .action-links a {
+            color: #bb86fc;
+            text-decoration: none;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: 0.2s;
+            font-size: 0.9em;
+            letter-spacing: 1px;
+        }
+        .action-links a.delete { color: #ff5252; }
+        .action-links a:hover { text-shadow: 0 0 10px rgba(187, 134, 252, 0.8); }
+        .action-links a.delete:hover { text-shadow: 0 0 10px rgba(255, 82, 82, 0.8); }
+        .importance-stars { color: #ffca28; text-shadow: 0 0 8px rgba(255, 202, 40, 0.4); }
+    </style>
+</head>
+<body>
+
+    <div class="radar-panel">
+        <div class="radar-header">📡 GÖREV RADARI</div>
+        
+        {% set urgent_tasks = [] %}
+        <!-- Süresi geçenleri ve Tamamlananları Radara ALMAZ -->
+        {% for task in tasks if not task.completed and not task.is_overdue and task.days_left <= 3 %}
+            <div class="radar-item {% if task.days_left == 0 %}critical-alert{% endif %}">
+                <div class="radar-title">{{ task.title }}</div>
+                <div class="radar-info">
+                    <span style="color: {% if task.days_left == 0 %}#ff5252{% else %}#ffca28{% endif %}; font-weight: bold;">
+                        {% if task.days_left == 0 %}Bugün Teslim!{% else %}⏳ {{ task.days_left }} gün kaldı{% endif %}
+                    </span>
+                    <span>{% for i in range(task.importance) %}⭐{% endfor %}</span>
+                </div>
+            </div>
+            {% set _ = urgent_tasks.append(task) %}
+        {% endfor %}
+
+        {% if urgent_tasks|length == 0 %}
+            <div style="color: #666; text-align: center; font-size: 0.9em; padding: 10px 0;">
+                Yakın zamanda teslim edilecek görev yok. Radar temiz. ☕
+            </div>
+        {% endif %}
+    </div>
+
+    <h1>Akıllı To-Do List</h1>
+
+    <div class="form-container">
+        <form action="/add" method="post">
+            <input type="text" name="title" placeholder="Görev adı (Yapay zeka analiz edecektir...)" required>
+            <input type="date" name="deadline" required>
+            <button type="submit">Sisteme İşle</button>
+        </form>
+    </div>
+
+    <div class="section-title critical">
+        🔥 KRİTİK GÖREVLER
+    </div>
+    <div class="task-list">
+        {% for task in tasks %}
+            {% if task.importance >= 4 %}
+                <!-- Eğer görev zamanı geçmişse overdue class'ını, tamamlanmışsa completed class'ını uygular -->
+                <div class="task-card high-priority {% if task.completed %}completed{% elif task.is_overdue %}overdue{% endif %}">
+                    {% if task.importance == 5 %}
+                        <div class="ankh-watermark">☥</div>
+                    {% endif %}
+                    <div class="task-content">
+                        <div class="task-header">
+                            <h3>{{ task.title }}</h3>
+                            <span class="category-badge">{{ task.category }}</span>
+                        </div>
+                        <p style="margin: 5px 0; color: #bbb;">
+                            <strong>Otomatik Önem:</strong> 
+                            <span class="importance-stars">{% for i in range(task.importance) %}⭐{% endfor %}</span>
+                        </p>
+                        <p style="margin: 5px 0; color: #888;">
+                            <strong>Durum:</strong> 
+                            {% if task.completed %}
+                                <span style="color: #4CAF50;">Tamamlandı ✓</span>
+                            {% elif task.is_overdue %}
+                                <span style="color: #ff5252;">Zamanı Geçti ⏳</span>
+                            {% else %}
+                                Aktif
+                            {% endif %}
+                            | <strong>Süre:</strong> <span style="color: #bbb;">{{ task.days_display }}</span>
+                        </p>
+                        
+                        <div class="action-links">
+                            <!-- Zamanı geçen görevlerde Tamamla butonu gizlenir -->
+                            {% if not task.completed and not task.is_overdue %}
+                                <a href="/complete/{{ task.id }}"><span>✓</span> Tamamla</a>
+                            {% endif %}
+                            <a href="/delete/{{ task.id }}" class="delete">🗑️ Sil</a>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        {% endfor %}
+    </div>
+
+    <div class="section-title">
+        📌 DİĞER GÖREVLER
+    </div>
+    <div class="task-list">
+        {% for task in tasks %}
+            {% if task.importance < 4 %}
+                <div class="task-card {% if task.completed %}completed{% elif task.is_overdue %}overdue{% endif %}">
+                    <div class="task-content">
+                        <div class="task-header">
+                            <h3>{{ task.title }}</h3>
+                            <span class="category-badge">{{ task.category }}</span>
+                        </div>
+                        <p style="margin: 5px 0; color: #bbb;">
+                            <strong>Otomatik Önem:</strong> 
+                            <span class="importance-stars">{% for i in range(task.importance) %}⭐{% endfor %}</span>
+                        </p>
+                        <p style="margin: 5px 0; color: #888;">
+                            <strong>Durum:</strong> 
+                            {% if task.completed %}
+                                <span style="color: #4CAF50;">Tamamlandı ✓</span>
+                            {% elif task.is_overdue %}
+                                <span style="color: #ff5252;">Zamanı Geçti ⏳</span>
+                            {% else %}
+                                Aktif
+                            {% endif %}
+                            | <strong>Süre:</strong> <span style="color: #bbb;">{{ task.days_display }}</span>
+                        </p>
+                        
+                        <div class="action-links">
+                            {% if not task.completed and not task.is_overdue %}
+                                <a href="/complete/{{ task.id }}"><span>☥</span> Tamamla</a>
+                            {% endif %}
+                            <a href="/delete/{{ task.id }}" class="delete">🗑️ Sil</a>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        {% endfor %}
+    </div>
+
+</body>
+</html>
